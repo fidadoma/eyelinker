@@ -46,6 +46,11 @@ read.asc <- function(fname)
         inp <- str_replace_all(inp,fixed("............."),fixed("\t............."))
     }
     
+    # Process all calibration info
+    # We are just selecting all lines with calibration results and parsing them
+    # we used all data, as calibration is not only in the header (there could be multiple calibrations during the experiment)
+    cals <- inp %>% str_select("VALIDATION") %>% parse.calibrations()
+    
     #"Header" isn't strict, it's whatever comes before the first "START" line
     init <- str_detect(inp,"^START") %>% which %>% min
     header <- inp[1:(init-1)]
@@ -77,11 +82,12 @@ read.asc <- function(fname)
             out
         }
     }
-    vars <- c("raw","msg","sacc","fix","blinks","info")
+    vars <- c("raw","msg","sacc","fix","blinks","cal","info")
     #Collect all the data across blocks
     out <- map(vars,collect) %>% setNames(vars)
 
     out$info <- info
+    out$cal <- cals
     out
 }
 
@@ -190,6 +196,18 @@ parse.blinks <- function(evt,events)
     dfc
 }
 
+# parses all validation infromation from the data
+parse.calibrations <- function(calsRaw) {
+  # ldply wrapper for data frame extraction
+  extract_df <- function(r) {
+    r <- r[r != ""]
+    data.frame(time = as.numeric(r[1]), calType = r[4], eye = r[6], calResult = r[7], avg_error = as.numeric(r[9]), max_error = as.numeric(r[11]), stringsAsFactors = F)
+  }
+  
+  cals <- calsRaw %>% str_select("^MSG") %>% str_sub(start=5) %>% str_split(" ")
+  df <- cals %>% ldply(extract_df)
+  df
+}
 
 
 parse.fixations <- function(evt,events)

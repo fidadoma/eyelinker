@@ -38,6 +38,7 @@ names(dat)
 - fix are the fixations
 - blinks are the blinks
 - msg are message events
+- cal are calibration results
 - info contains some meta-data
 
 ## Meta-data
@@ -257,7 +258,7 @@ The traces around the blink are indeed spurious.
 
 ## Messages 
 
-The last data structure we need to cover contains messages:
+Next data structure we need to cover contains messages:
 
 ```{r}
 head(dat$msg)
@@ -271,3 +272,10 @@ library(stringr)
 filter(dat$msg,str_detect(text,fixed("blank_screen"))) 
 ```
 
+## Calibration
+
+The last data structure contains calibration results. Currently all calibration are used.
+
+```{r}
+head(dat$cal)
+```
